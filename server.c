@@ -15,7 +15,12 @@
 int socketFD;
 char buffer[MAX_MESSAGE_LENGTH];
 
-
+/**
+ * Called upon receiving a datagram from the UDP socket
+ * @param len length of the received message
+ * @param clientAddress the address the message was received from
+ * @param addressLength the length of the address
+ */
 void onDatagram(int len, struct sockaddr_in* clientAddress, int addressLength) {
     int type = buffer[0];
     char* buf = buffer + 1;
@@ -26,6 +31,10 @@ void onDatagram(int len, struct sockaddr_in* clientAddress, int addressLength) {
     }
 }
 
+/**
+ * Attempts to read data from the datagram socket, processes it in case any way received
+ * @returns 1 if data was received, 0 otherwise
+ */
 int readServer() {
     struct sockaddr_in clientAddress;
     memset(&clientAddress, 0, sizeof(clientAddress)); 
@@ -46,6 +55,13 @@ int readServer() {
     return 1;
 }
 
+/**
+ * Send data to a client using the datagram socket
+ * @param dest the destination address
+ * @param addrLen the length of the address
+ * @param buf the data buffer
+ * @param len the length of the data
+ */
 void sendData(struct sockaddr_in* dest, socklen_t addrLen, char* buf, int len) {
     int sent = sendto(socketFD, buf, len, 0, (struct sockaddr*) dest, addrLen);
     if(sent == -1) {
@@ -54,6 +70,10 @@ void sendData(struct sockaddr_in* dest, socklen_t addrLen, char* buf, int len) {
     }
 }
 
+/**
+ * Initializes the server/datagram socket
+ * @returns 1 if successful, 0 otherwise
+ */
 int initServer() {
     struct sockaddr_in serverAddress;
 

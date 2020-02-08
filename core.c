@@ -11,12 +11,26 @@
 #include "server.h"
 #include "util.h"
 
+/**
+ * Manages subscriptions and forwarding CSI messages to subscribers
+ */
+
+
+
 struct subscription* subscriptions[100];
 int subscriptionsLength = 0;
 char buffer[20000];
 
+// ID of the message, incremented with each received CSI info and included in each notification
 int messageId;
 
+/**
+ * Packages csi matrix and status into a buffer to be sent to a subscriber
+ * @param buffer the buffer to write to
+ * @param csi_status the csi status
+ * @param csi_matrix the csi matrix
+ * @returns the length of the packaged data
+ */
 int packageCSIInfoMessage(char* buffer, csi_struct* csi_status, COMPLEX csi_matrix[3][3][114]) {
     int index = 0;
     putByte(buffer, &index, TYPE_CSI_INFO);
@@ -55,19 +69,16 @@ int packageCSIInfoMessage(char* buffer, csi_struct* csi_status, COMPLEX csi_matr
     return index;
 }
 
+/**
+ * Called on receiving CSI from the kernel, checks filters and forwards to subscribers 
+ * @param data_buf the data from the kernel
+ * @param csi_status the csi status from the kernel
+ * @param csi_matrix the csi matrix from the kernel
+ */
 void onCSI(unsigned char *data_buf, csi_struct* csi_status, COMPLEX csi_matrix[3][3][114]) {
     for(int i = 0;i < subscriptionsLength;i++) {
         struct subscription* sub = subscriptions[i];
         if(matchesFilter(csi_status, &(sub->options.filter_options))) {
-            // buffer.messageType = TYPE_CSI_INFO;
-            // buffer.messageId = messageId;
-            // memcpy(&buffer.csi_status, csi_status, sizeof(csi_struct));
-            // if(csi_status->csi_len > 0) {
-            //     memcpy(&buffer.csi_matrix, &csi_matrix, sizeof(COMPLEX) * 3 * 3 * 114);
-            // } else {
-            //     memset(&buffer.csi_matrix, 0, sizeof(COMPLEX) * 3 * 3 * 114);
-            // }
-            // sendData(subscriptions[i]->address, subscriptions[i]->addressLength, (char*) &buffer, sizeof(buffer));
             int len = packageCSIInfoMessage(buffer, csi_status, csi_matrix);
             sendData(sub->address, sub->addressLength, buffer, len);
         }
@@ -76,6 +87,13 @@ void onCSI(unsigned char *data_buf, csi_struct* csi_status, COMPLEX csi_matrix[3
     messageId++;
 }
 
+/**
+ * Adds a subscription for a client
+ * @param buf the received subscription message
+ * @param len length of the subscription message
+ * @param clientAddress the address of the subscriber to be added
+ * @param addressLength the length of the subscriber's address
+ */
 void subscribe(char* buf, int len, struct sockaddr_in* clientAddress, socklen_t addressLength) {
     if(len != sizeof(struct subscription_options)) {
         log(LEVEL_WARNING, "Subscription message has wrong length");
@@ -102,6 +120,13 @@ void subscribe(char* buf, int len, struct sockaddr_in* clientAddress, socklen_t 
 }
 
 //TODO: maybe just allow one client?
+/**
+ * Removes a subscriber
+ * @param buf the unsubscription message
+ * @param len the length of the unsubscription message
+ * @param clientAddress the address of the client
+ * @param addressLength the length of the client's address
+ */
 void unsubscribe(char* buf, int len, struct sockaddr_in* clientAddress, socklen_t addressLength) {
     //char confirmation[] = {TYPE_CONFIRM_UNSUBSCRIPTION};
     //sendData(clientAddress, addressLength, confirmation, 1);
@@ -129,6 +154,13 @@ void unsubscribe(char* buf, int len, struct sockaddr_in* clientAddress, socklen_
     subscriptionsLength--;
 }
 
+
+/**
+ * Checks if the current csi info matches a client's subscription options, can be expanded
+ * @param csi_status
+ * @param options the client's filter options
+ * @returns 1 if matches client's filter, 0 else
+ */
 int matchesFilter(csi_struct* csi_status, struct filter_options* options) {
     if(options->payload_size != 0 && csi_status->payload_len != options->payload_size) {
        return 0;

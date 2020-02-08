@@ -19,6 +19,7 @@ struct subscription {
     struct subscription_options options;
 };
 
+// sent to a client/subscriber to notify them of CSI for an arriving packet
 struct csi_info {
     char messageType;//Set to TYPE_CSI_INFO
     int subscriptionId;

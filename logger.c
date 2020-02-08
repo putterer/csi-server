@@ -6,6 +6,11 @@
 
 int logLevel = LEVEL_TRACE;
 
+/**
+ * Returns the log level as a representative string
+ * @param level the log level
+ * @returns the string representation
+ */
 char* getLogLevelString(int level) {
     switch(level) {
         case LEVEL_TRACE: return "TRACE";
@@ -17,6 +22,12 @@ char* getLogLevelString(int level) {
     }
 }
 
+/**
+ * Adds a statement to the log
+ * @param level the log level for this message
+ * @param the format of the log message
+ * @param ... parameters for the message
+ */
 void log(const int level, const char* format, ...) {
     if(level < logLevel) {
         return;
@@ -39,6 +50,10 @@ void log(const int level, const char* format, ...) {
     fputc('\n', stream);
 }
 
+/**
+ * Set the current log level
+ * @param level the new log level
+ */
 void setLogLevel(int level) {
     logLevel = level;
 }

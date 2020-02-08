@@ -23,6 +23,7 @@ int main(int argc, char* argv[]) {
     setLogLevel(LEVEL_TRACE);
     log(LEVEL_INFO, "Starting CSI server...");
     
+    // Start CSI service
     int status;
     status = initCSI();
     if(status) {
@@ -30,6 +31,7 @@ int main(int argc, char* argv[]) {
         exit(status);
     }
 
+    // Start UDP server
     status = initServer();
     if(status) {
         log(LEVEL_ERROR, "Could not start server");
@@ -42,6 +44,7 @@ int main(int argc, char* argv[]) {
         received = readCSI() | received;
         received = readServer() | received;
 
+        // Do not waste CPU cycles in case the last read operation didn't get any result
         if(! received) {
             usleep(10);
         }

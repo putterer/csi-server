@@ -37,11 +37,11 @@ int closeCSI() {
     return 0;
 }
 
-//TODO remove
 void processCSI(unsigned char *data_buf, csi_struct* csi_status, COMPLEX csi_matrix[3][3][114]) {
 
     onCSI(data_buf, csi_status, csi_matrix);
 
+    // debugging code
     /* if(1 || csi_status->payload_len == 140) {
         printf("Recv msg with rate: 0x%02x | payload len: %d\n",csi_status->rate,csi_status->payload_len);
         printf("\n");
@@ -79,6 +79,10 @@ void processCSI(unsigned char *data_buf, csi_struct* csi_status, COMPLEX csi_mat
     
 }
 
+/**
+ * Attempts to read csi from the csi device
+ * @returns 1 if csi was read and processed, 0 otherwise
+ */
 int readCSI() {
     int length = read_csi_buf(buffer, csiDevice, BUFSIZE);
     if(length > 0) {

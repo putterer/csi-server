@@ -1,5 +1,6 @@
 #include <netinet/in.h>
 
+// Types of server messages
 #define TYPE_SUBSCRIBE 10
 #define TYPE_UNSUBSCRIBE 11
 #define TYPE_CONFIRM_SUBSCRIPTION 12
