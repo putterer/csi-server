@@ -1,11 +1,13 @@
-#ifndef __INT_CSI_TOOL_SERVER__
-#define __INT_CSI_TOOL_SERVER__
+#ifndef __CSI_SERVER_INT_TOOL_H__
+#define __CSI_SERVER_INT_TOOL_H__
+
+#include <stdlib.h>
 
 typedef struct
 {
-    int real;
-    int imag;
-} ATH_COMPLEX;
+    double real;
+    double imag;
+} INT_COMPLEX;
 
 typedef struct {
 	unsigned int timestamp_low;
@@ -15,15 +17,16 @@ typedef struct {
 	unsigned char rssi_a, rssi_b, rssi_c;
 	char noise;
 	unsigned char agc, antenna_sel;
-	unsigned short /* __le16 */ len;
-	unsigned short /* __le16 */ fake_rate_n_flags;
-	unsigned char* csi_matrix;
+	unsigned short len;
+	unsigned short fake_rate_n_flags;
+	unsigned char perm[3]; // antenna permutation 0 based
+	INT_COMPLEX* csi_matrix;  // NON PERMUTED!!!, outer loop is subcarrier
 } int_csi_notification;
 
-void int_free_notification(int_csi_notification notification) {
-    free(notification.csi_matrix);
-}
 
+
+void int_read_bfee(unsigned char* data, int_csi_notification* notification);
+void int_free_notification(int_csi_notification* notification);
 
 #endif
 

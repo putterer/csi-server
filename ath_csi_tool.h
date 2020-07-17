@@ -13,6 +13,9 @@
  *   Copyright (c)  WANDS group @ Nanyang Technological University
  * =====================================================================================
  */
+#ifndef __CSI_SERVER_ATH_TOOL_H__
+#define __CSI_SERVER_ATH_TOOL_H__
+
 #include <stdbool.h>
 #include <sys/types.h>
 
@@ -54,3 +57,6 @@ void  ath_close_csi_device(int fd);
 int   ath_read_csi_buf(unsigned char* buf_addr,int fd, int BUFSIZE);
 void  ath_record_status(unsigned char* buf_addr, int cnt, ath_csi_struct* csi_status);
 void  ath_record_csi_payload(unsigned char* buf_addr, ath_csi_struct* csi_status,unsigned char* data_buf, ATH_COMPLEX(* csi_buf)[3][114]);
+
+
+#endif
