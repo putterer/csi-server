@@ -8,36 +8,35 @@
 
 // https://wands.sg/research/wifi/AtherosCSI/
 // M x N x subcarriers   where M is transmitting antenna, N is receiving antenna
-COMPLEX       csiMatrix[3][3][114];
-csi_struct*   csiStatus;
+ATH_COMPLEX       csiMatrix[3][3][114];
+ath_csi_struct*   csiStatus;
 unsigned char buffer[BUFSIZE];
 unsigned char dataBuffer[1500];
 int           csiDevice;// device file descriptor
 
 
-int initCSI() {
-    csiStatus = (csi_struct*) malloc(sizeof(csi_struct));
-    
-    csiDevice = open_csi_device();
+int initCSI() {    
+    csiDevice = ath_open_csi_device();
     if(csiDevice < 0) {
-        log(LEVEL_ERROR, "Could not open csi device, are you running as root? is /dev/CSI_dev present?");
-        return 1;
+        log(LEVEL_WARNING, "Could not open atheros csi device, are you running as root? is /dev/CSI_dev present?");
+        log(LEVEL_INFO, "Assuming intel chip, reading csi from stdin...");
+        // return 1;
+    } else {
+        log(LEVEL_DEBUG, "Opened csi device, fd: %d", csiDevice);
+        csiStatus = (ath_csi_struct*) malloc(sizeof(ath_csi_struct));
     }
-    log(LEVEL_DEBUG, "Opened csi device, fd: %d", csiDevice);
-
-
 
     return 0;
 }
 
 int closeCSI() {
-    close_csi_device(csiDevice);
+    ath_close_csi_device(csiDevice);
     free(csiStatus);
     log(LEVEL_DEBUG, "Closing csi device");
     return 0;
 }
 
-void processCSI(unsigned char *data_buf, csi_struct* csi_status, COMPLEX csi_matrix[3][3][114]) {
+void processCSI(unsigned char *data_buf, ath_csi_struct* csi_status, ATH_COMPLEX csi_matrix[3][3][114]) {
 
     onCSI(data_buf, csi_status, csi_matrix);
 
@@ -50,7 +49,7 @@ void processCSI(unsigned char *data_buf, csi_struct* csi_status, COMPLEX csi_mat
         printf("RX antenna: %d\n", csi_status->nr);
         printf("TX antenna: %d\n", csi_status->nc);
         
-        //COMPLEX* mat = csi_matrix[csi_status->nc][csi_status->nr];
+        //ATH_COMPLEX* mat = csi_matrix[csi_status->nc][csi_status->nr];
 
         if(csi_status->csi_len == 0) {
             printf("No CSI in message (probably valid but no hw_upload/type)\n\n\n");
@@ -84,12 +83,12 @@ void processCSI(unsigned char *data_buf, csi_struct* csi_status, COMPLEX csi_mat
  * @returns 1 if csi was read and processed, 0 otherwise
  */
 int readCSI() {
-    int length = read_csi_buf(buffer, csiDevice, BUFSIZE);
+    int length = ath_read_csi_buf(buffer, csiDevice, BUFSIZE);
     if(length > 0) {
         log(LEVEL_TRACE, "Received %d bytes (a message) from csi device", length);
 
-        record_status(buffer, length, csiStatus);
-        record_csi_payload(buffer, csiStatus, dataBuffer, csiMatrix);
+        ath_record_status(buffer, length, csiStatus);
+        ath_record_csi_payload(buffer, csiStatus, dataBuffer, csiMatrix);
 
         processCSI(dataBuffer, csiStatus, csiMatrix);
         return 1;

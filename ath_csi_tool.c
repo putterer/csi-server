@@ -26,12 +26,12 @@
 #include <sys/stat.h>
 #include <sys/select.h>
 
-#include "csi_tool.h"
+#include "ath_csi_tool.h"
 
 #define csi_st_len 23
 /* test and find out the system is big endian or not*/
 //for 16/32/64 system this should be all fine.
-bool is_big_endian(){
+bool ath_is_big_endian(){
     unsigned int a = 0x1;
     unsigned char b = *(unsigned char *)&a;
     if ( b == 0)
@@ -41,7 +41,7 @@ bool is_big_endian(){
     return false;
 }
 
-int bit_convert(int data, int maxbit)
+int ath_bit_convert(int data, int maxbit)
 {
     if ( data & (1 << (maxbit - 1)))
     {
@@ -51,7 +51,7 @@ int bit_convert(int data, int maxbit)
     return data;
 }
 
-void fill_csi_matrix(u_int8_t* csi_addr, int nr, int nc, int num_tones, COMPLEX(* csi_matrix)[3][114]){
+void ath_fill_csi_matrix(u_int8_t* csi_addr, int nr, int nc, int num_tones, ATH_COMPLEX(* csi_matrix)[3][114]){
     u_int8_t k;
     u_int8_t bits_left, nr_idx, nc_idx;
     u_int32_t bitmask, idx, current_data, h_data, h_idx;
@@ -85,7 +85,7 @@ void fill_csi_matrix(u_int8_t* csi_addr, int nr, int nc, int num_tones, COMPLEX(
                 }
                 
                 imag = current_data & bitmask;
-                imag = bit_convert(imag, 10);
+                imag = ath_bit_convert(imag, 10);
                 //printf("imag is: %d | ",imag);
                 csi_matrix[nr_idx][nc_idx][k].imag = imag;
                 //printf("imag is: %d | ",csi_matrix[nr_idx][nc_idx][k].imag);
@@ -103,7 +103,7 @@ void fill_csi_matrix(u_int8_t* csi_addr, int nr, int nc, int num_tones, COMPLEX(
                 }
 
                 real = current_data & bitmask;
-                real = bit_convert(real,10);
+                real = ath_bit_convert(real,10);
                 //printf("real is: %d |",real);
                 csi_matrix[nr_idx][nc_idx][k].real = real;
                 //printf("real is: %d \n",csi_matrix[nr_idx][nc_idx][k].real);
@@ -116,7 +116,7 @@ void fill_csi_matrix(u_int8_t* csi_addr, int nr, int nc, int num_tones, COMPLEX(
     }
 }
 
-int open_csi_device(){
+int ath_open_csi_device(){
    int fd;
    fd = open("/dev/CSI_dev",O_RDWR);
    //int flags = fcntl(fd, F_GETFL, 0);
@@ -124,13 +124,13 @@ int open_csi_device(){
    return fd;
 }
 
-void close_csi_device(int fd){
+void ath_close_csi_device(int fd){
     close(fd);
     //remove("/dev/CSI_dev");
 }
 
 
-int read_csi_buf(unsigned char* buf_addr,int fd, int BUFSIZE){
+int ath_read_csi_buf(unsigned char* buf_addr,int fd, int BUFSIZE){
     // fd_set set;
     // struct timeval timeout;
     // timeout.tv_sec = 0;
@@ -155,8 +155,8 @@ int read_csi_buf(unsigned char* buf_addr,int fd, int BUFSIZE){
     else
         return 0;
 }
-void record_status(unsigned char* buf_addr, int cnt, csi_struct* csi_status){
-    if (is_big_endian()){
+void ath_record_status(unsigned char* buf_addr, int cnt, ath_csi_struct* csi_status){
+    if (ath_is_big_endian()){
         csi_status->tstamp  =   
             ((buf_addr[0] << 56) & 0x00000000000000ff) | ((buf_addr[1] << 48) & 0x000000000000ff00) | 
             ((buf_addr[2] << 40) & 0x0000000000ff0000) | ((buf_addr[3] << 32) & 0x00000000ff000000) | 
@@ -196,7 +196,7 @@ void record_status(unsigned char* buf_addr, int cnt, csi_struct* csi_status){
     csi_status->rssi_2    = buf_addr[22];
 }
 
-void record_csi_payload(unsigned char* buf_addr, csi_struct* csi_status, unsigned char* data_buf, COMPLEX(* csi_matrix)[3][114]){
+void ath_record_csi_payload(unsigned char* buf_addr, ath_csi_struct* csi_status, unsigned char* data_buf, ATH_COMPLEX(* csi_matrix)[3][114]){
     int i;
     int nr,nc,num_tones;
     u_int8_t* csi_addr;
@@ -216,6 +216,6 @@ void record_csi_payload(unsigned char* buf_addr, csi_struct* csi_status, unsigne
     
     /* extract the CSI and fill the complex matrix */
     csi_addr = buf_addr + csi_st_len + 2;
-    fill_csi_matrix(csi_addr,nr,nc,num_tones, csi_matrix);
+    ath_fill_csi_matrix(csi_addr,nr,nc,num_tones, csi_matrix);
 }
 

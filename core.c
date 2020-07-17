@@ -31,7 +31,7 @@ int messageId;
  * @param csi_matrix the csi matrix
  * @returns the length of the packaged data
  */
-int packageCSIInfoMessage(char* buffer, csi_struct* csi_status, COMPLEX csi_matrix[3][3][114]) {
+int packageCSIInfoMessage(char* buffer, ath_csi_struct* csi_status, ATH_COMPLEX csi_matrix[3][3][114]) {
     int index = 0;
     putByte(buffer, &index, TYPE_CSI_INFO);
     putInt(buffer, &index, messageId);
@@ -62,8 +62,8 @@ int packageCSIInfoMessage(char* buffer, csi_struct* csi_status, COMPLEX csi_matr
 			}
 		}
     } else {
-        memset((buffer + index), 0, sizeof(COMPLEX) * 3 * 3 * 114);
-        index += sizeof(COMPLEX) * 3 * 3 * 114;
+        memset((buffer + index), 0, sizeof(ATH_COMPLEX) * 3 * 3 * 114);
+        index += sizeof(ATH_COMPLEX) * 3 * 3 * 114;
     }
 
     return index;
@@ -75,7 +75,7 @@ int packageCSIInfoMessage(char* buffer, csi_struct* csi_status, COMPLEX csi_matr
  * @param csi_status the csi status from the kernel
  * @param csi_matrix the csi matrix from the kernel
  */
-void onCSI(unsigned char *data_buf, csi_struct* csi_status, COMPLEX csi_matrix[3][3][114]) {
+void onCSI(unsigned char *data_buf, ath_csi_struct* csi_status, ATH_COMPLEX csi_matrix[3][3][114]) {
     for(int i = 0;i < subscriptionsLength;i++) {
         struct subscription* sub = subscriptions[i];
         if(matchesFilter(csi_status, &(sub->options.filter_options))) {
@@ -161,7 +161,7 @@ void unsubscribe(char* buf, int len, struct sockaddr_in* clientAddress, socklen_
  * @param options the client's filter options
  * @returns 1 if matches client's filter, 0 else
  */
-int matchesFilter(csi_struct* csi_status, struct filter_options* options) {
+int matchesFilter(ath_csi_struct* csi_status, struct filter_options* options) {
     if(options->payload_size != 0 && csi_status->payload_len != options->payload_size) {
        return 0;
     }

@@ -7,6 +7,7 @@
 #include "logger.h"
 #include "csi_service.h"
 #include "server.h"
+#include "csi_types.h"
 
 int exitRequested;
 
