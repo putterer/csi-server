@@ -16,7 +16,6 @@
  */
 
 
-
 struct subscription* subscriptions[100];
 int subscriptionsLength = 0;
 char buffer[20000];
@@ -31,7 +30,7 @@ int messageId;
  * @param csi_matrix the csi matrix
  * @returns the length of the packaged data
  */
-int packageCSIInfoMessage(char* buffer, ath_csi_struct* csi_status, ATH_COMPLEX csi_matrix[3][3][114]) {
+int ath_packageCSIInfoMessage(char* buffer, ath_csi_struct* csi_status, ATH_COMPLEX csi_matrix[3][3][114]) {
     int index = 0;
     putByte(buffer, &index, TYPE_CSI_INFO);
     putInt(buffer, &index, messageId);
@@ -70,20 +69,72 @@ int packageCSIInfoMessage(char* buffer, ath_csi_struct* csi_status, ATH_COMPLEX 
 }
 
 /**
+ * Packages csi matrix and status into a buffer to be sent to a subscriber
+ * @param buffer the buffer to write to
+ * @param notification the csi notification
+ * @returns the length of the packaged data
+ */
+int int_packageCSIInfoMessage(char* buffer, int_csi_notification* notification) {
+    int index = 0;
+
+    putByte(buffer, &index, TYPE_CSI_INFO);
+    putInt(buffer, &index, messageId);
+    putInt(buffer, &index, notification->timestamp_low);
+    putShort(buffer, &index, notification->bfee_count);
+    putByte(buffer, &index, notification->Nrx);
+    putByte(buffer, &index, notification->Ntx);
+    putByte(buffer, &index, notification->rssi_a);
+    putByte(buffer, &index, notification->rssi_b);
+    putByte(buffer, &index, notification->rssi_c);
+    putByte(buffer, &index, notification->noise);
+    putByte(buffer, &index, notification->agc);
+    putByte(buffer, &index, notification->antenna_sel);
+    putByte(buffer, &index, notification->perm[0]);
+    putByte(buffer, &index, notification->perm[1]);
+    putByte(buffer, &index, notification->perm[2]);
+    putShort(buffer, &index, notification->len);
+    putShort(buffer, &index, notification->fake_rate_n_flags);
+    
+    int csi_mat_entries = notification->Ntx * notification->Nrx * 30;
+    for(int i = 0;i < csi_mat_entries;i++) {
+        putDouble(buffer, &index, notification->csi_matrix[i].real);
+        putDouble(buffer, &index, notification->csi_matrix[i].imag);
+    }
+
+    return index;
+}
+
+/**
  * Called on receiving CSI from the kernel, checks filters and forwards to subscribers 
  * @param data_buf the data from the kernel
  * @param csi_status the csi status from the kernel
  * @param csi_matrix the csi matrix from the kernel
  */
-void onCSI(unsigned char *data_buf, ath_csi_struct* csi_status, ATH_COMPLEX csi_matrix[3][3][114]) {
+void ath_onCSI(unsigned char *data_buf, ath_csi_struct* csi_status, ATH_COMPLEX csi_matrix[3][3][114]) {
     for(int i = 0;i < subscriptionsLength;i++) {
         struct subscription* sub = subscriptions[i];
         if(matchesFilter(csi_status, &(sub->options.filter_options))) {
-            int len = packageCSIInfoMessage(buffer, csi_status, csi_matrix);
+            int len = ath_packageCSIInfoMessage(buffer, csi_status, csi_matrix);
             sendData(sub->address, sub->addressLength, buffer, len);
         }
     }
 
+    messageId++;
+}
+
+/**
+ * Called on receiving CSI from the kernel, does not yet filter and forwards to subscribers 
+ * @param notification the notification constructed from the data received from the kernel
+ */
+void int_onCSI(int_csi_notification* notification) {
+    for(int i = 0;i < subscriptionsLength;i++) {
+        struct subscription* sub = subscriptions[i];
+        // TODO: check / add filter options
+        // if(matchesFilter(csi_status, &(sub->options.filter_options))) {
+            int len = int_packageCSIInfoMessage(buffer, notification);
+            sendData(sub->address, sub->addressLength, buffer, len);
+        // }
+    }
     messageId++;
 }
 

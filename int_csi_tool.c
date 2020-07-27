@@ -53,10 +53,28 @@ void int_read_bfee(unsigned char* data, int_csi_notification* notification) {
 		}
 	}
 
-    /* Compute the permutation array */
-	notification->perm[0] = ((notification->antenna_sel) & 0x3) + 1;
-	notification->perm[1] = ((notification->antenna_sel >> 2) & 0x3) + 1;
-	notification->perm[2] = ((notification->antenna_sel >> 4) & 0x3) + 1;
+    /* Compute the permutation array (mapping from rx chain to antenna) */
+	notification->perm[0] = ((notification->antenna_sel) & 0x3);
+	notification->perm[1] = ((notification->antenna_sel >> 2) & 0x3);
+	notification->perm[2] = ((notification->antenna_sel >> 4) & 0x3);
+
+	printf("bfee_count: %d, Nrx: %d, Ntx: %d, RSSI(a,b,c): %d,%d,%d, noise: %d, antenna_selection [%d %d %d]\n",
+		notification->bfee_count,
+		notification->Nrx, notification->Ntx,
+		notification->rssi_a, notification->rssi_b, notification->rssi_c,
+		notification->noise,
+		notification->perm[0],
+		notification->perm[1],
+		notification->perm[2]
+	);
+
+	//TODO print csi matrix
+	printf("CSI (rx_chain=0, tx=0;rx=0):  ");
+	for(int i = 0;i < 30;i++) {
+		printf("R%.0f,I%.0f  ", notification->csi_matrix[i].real, notification->csi_matrix[i].imag);
+	}
+
+	printf(" ...\n");
 }
 
 void int_free_notification(int_csi_notification* notification) {

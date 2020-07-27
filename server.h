@@ -5,7 +5,9 @@
 #define TYPE_UNSUBSCRIBE 11
 #define TYPE_CONFIRM_SUBSCRIPTION 12
 #define TYPE_CONFIRM_UNSUBSCRIPTION 13
-#define TYPE_CSI_INFO 14
+#define TYPE_CSI_INFO 14 // deprecated, now equals TYPE_ATH_CSI_INFO
+#define TYPE_ATH_CSI_INFO 14
+#define TYPE_INT_CSI_INFO 15
 
 #define PORT 9380
 #define MAX_MESSAGE_LENGTH 65507 // MTU might be lower, this is the the maximum size with IP header already deducted

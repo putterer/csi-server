@@ -64,3 +64,10 @@ void putLong(char* buffer, int* index, u_int64_t l) {
     *index += 8;
 }
 
+/**
+ * THIS DOES NOT CONVERT TO NETWORK BYTE ORDER
+ */
+void putDouble(char* buffer, int* index, double d) {
+    memcpy((buffer + *index), &d, sizeof(double));
+    *index += 8;
+}

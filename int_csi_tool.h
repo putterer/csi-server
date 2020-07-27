@@ -12,7 +12,6 @@ typedef struct
 typedef struct {
 	unsigned int timestamp_low;
 	unsigned short bfee_count;
-	unsigned short reserved1;
 	unsigned char Nrx, Ntx;
 	unsigned char rssi_a, rssi_b, rssi_c;
 	char noise;

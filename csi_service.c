@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
+#include <arpa/inet.h>
 
 #include "logger.h"
 #include "core.h"
@@ -59,9 +60,9 @@ int closeCSI() {
     return 0;
 }
 
-void processCSI(unsigned char *data_buf, ath_csi_struct* csi_status, ATH_COMPLEX csi_matrix[3][3][114]) {
+void ath_processCSI(unsigned char *data_buf, ath_csi_struct* csi_status, ATH_COMPLEX csi_matrix[3][3][114]) {
 
-    onCSI(data_buf, csi_status, csi_matrix);
+    ath_onCSI(data_buf, csi_status, csi_matrix);
 
     // ATHEROS debugging code
     /* if(1 || csi_status->payload_len == 140) {
@@ -115,7 +116,7 @@ int readCSI() {
             ath_record_status(receiveBuffer, length, ath_csiStatus);
             ath_record_csi_payload(receiveBuffer, ath_csiStatus, ath_dataBuffer, csiMatrix);
 
-            processCSI(ath_dataBuffer, ath_csiStatus, csiMatrix);
+            ath_processCSI(ath_dataBuffer, ath_csiStatus, csiMatrix);
             return 1;
         } else {
             return 0;
@@ -123,11 +124,9 @@ int readCSI() {
     }
 
     if(mode == MODE_INT_TOOL) {
-        //read 2 only, then read skip
-        printf("reading\n");
+        //read 3 only, then read skip
         memset(receiveBuffer, 0, RECV_BUFSIZE);
         int bytesReceived = read(fileno(stdin), receiveBuffer, 3);
-        printf("firstRead %d\n", bytesReceived);
 
         if(! bytesReceived) {
             return 0;
@@ -135,24 +134,24 @@ int readCSI() {
 
         //TODO: test using file
         
-        unsigned short *len = (unsigned short*)receiveBuffer;
-        unsigned char *code = (unsigned char*)(receiveBuffer + 2);
-        printf("Code: %d, Len: %d\n", *code, *len);
+        unsigned short len = ntohs(*((unsigned short*)receiveBuffer));
+        unsigned char code = *(receiveBuffer + 2);
 
-        while(bytesReceived < (*len + 2)) {
-            bytesReceived += read(fileno(stdin), receiveBuffer + bytesReceived, (*len + 2) - bytesReceived);
-            printf("totalRead %d / %d\n", bytesReceived, *len);
+        while(bytesReceived < (len + 2)) {
+            bytesReceived += read(fileno(stdin), receiveBuffer + bytesReceived, (len + 2) - bytesReceived);
         }
 
-        if(*code == 0xBB) {
+        if(code == 0xBB) {
             int_csi_notification csi_notification;
-            printf("Found csi of length %d\n", *len);
+            printf("\nFound csi of length %d\n", len);
 
             int_read_bfee(receiveBuffer + 3, &csi_notification);
 
+            int_onCSI(&csi_notification);
+
             int_free_notification(&csi_notification);
         } else {
-            printf("Found unknown field of code %d\n", *code);
+            printf("Found unknown field of code %d\n", code);
         }
 
         return 0;
