@@ -77,17 +77,24 @@ int ath_packageCSIInfoMessage(char* buffer, ath_csi_struct* csi_status, ATH_COMP
 int int_packageCSIInfoMessage(char* buffer, int_csi_notification* notification) {
     int index = 0;
 
+    // send as longer type to prevent conversion to signed at receiver
+    uint16_t rssi_a = notification->rssi_a;
+    uint16_t rssi_b = notification->rssi_b;
+    uint16_t rssi_c = notification->rssi_c;
+    uint16_t noise = notification->noise;
+    uint16_t agc = notification->agc;
+
     putByte(buffer, &index, TYPE_CSI_INFO);
     putInt(buffer, &index, messageId);
     putInt(buffer, &index, notification->timestamp_low);
     putShort(buffer, &index, notification->bfee_count);
     putByte(buffer, &index, notification->Nrx);
     putByte(buffer, &index, notification->Ntx);
-    putByte(buffer, &index, notification->rssi_a);
-    putByte(buffer, &index, notification->rssi_b);
-    putByte(buffer, &index, notification->rssi_c);
-    putByte(buffer, &index, notification->noise);
-    putByte(buffer, &index, notification->agc);
+    putShort(buffer, &index, rssi_a);
+    putShort(buffer, &index, rssi_b);
+    putShort(buffer, &index, rssi_c);
+    putShort(buffer, &index, noise);
+    putShort(buffer, &index, agc);
     putByte(buffer, &index, notification->antenna_sel);
     putByte(buffer, &index, notification->perm[0]);
     putByte(buffer, &index, notification->perm[1]);
