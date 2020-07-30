@@ -32,7 +32,7 @@ int messageId;
  */
 int ath_packageCSIInfoMessage(char* buffer, ath_csi_struct* csi_status, ATH_COMPLEX csi_matrix[3][3][114]) {
     int index = 0;
-    putByte(buffer, &index, TYPE_CSI_INFO);
+    putByte(buffer, &index, TYPE_ATH_CSI_INFO);
     putInt(buffer, &index, messageId);
     putLong(buffer, &index, csi_status->tstamp);
     putShort(buffer, &index, csi_status->channel);
@@ -84,7 +84,7 @@ int int_packageCSIInfoMessage(char* buffer, int_csi_notification* notification) 
     uint16_t noise = notification->noise;
     uint16_t agc = notification->agc;
 
-    putByte(buffer, &index, TYPE_CSI_INFO);
+    putByte(buffer, &index, TYPE_INT_CSI_INFO);
     putInt(buffer, &index, messageId);
     putInt(buffer, &index, notification->timestamp_low);
     putShort(buffer, &index, notification->bfee_count);

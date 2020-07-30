@@ -131,25 +131,13 @@ void ath_close_csi_device(int fd){
 
 
 int ath_read_csi_buf(unsigned char* buf_addr,int fd, int BUFSIZE){
-    // fd_set set;
-    // struct timeval timeout;
-    // timeout.tv_sec = 0;
-    // timeout.tv_usec = 0;
-    // FD_ZERO(&set);
-    // FD_SET(fd, &set); //TODO causes segfault
-    
-    // //no data to read, abort
-    // int selectStatus = select(fd + 1, &set, NULL, NULL, &timeout);
-    // if(0 == selectStatus) {
-    //     return 0;
-    // }//Why is status always 0?
 
     int cnt;
     /* listen to the port
      * read when 1, a csi is reported from kernel
      *           2, time out
      */           
-    cnt = read(fd,buf_addr,BUFSIZE);
+    cnt = read(fd,buf_addr,BUFSIZE); // TODO: use poll
     if(cnt)
         return cnt;
     else

@@ -3,6 +3,9 @@
 #include <unistd.h>
 #include <string.h>
 #include <arpa/inet.h>
+#include <fcntl.h>
+#include <poll.h>
+#include <signal.h>
 
 #include "logger.h"
 #include "core.h"
@@ -26,6 +29,8 @@ ath_csi_struct*   ath_csiStatus;
 unsigned char ath_dataBuffer[1500];
 int           ath_csiDevice;// device file descriptor
 
+int stdin_fd;
+
 // ---------------------------
 // ATHEROS TOOL
 // ---------------------------
@@ -44,6 +49,9 @@ int initCSI() {
 
         mode = MODE_ATH_TOOL;
         ath_csiStatus = (ath_csi_struct*) malloc(sizeof(ath_csi_struct));
+
+        stdin_fd = STDIN_FILENO;
+        fcntl(stdin_fd, F_SETFL, O_NONBLOCK | fcntl(stdin_fd, F_GETFL));
     }
 
     return 0;
@@ -124,9 +132,23 @@ int readCSI() {
     }
 
     if(mode == MODE_INT_TOOL) {
+        struct pollfd pfd;
+        pfd.fd = stdin_fd;
+        pfd.events = POLLIN;
+
+        int pollRes = poll(&pfd, 1, 0);
+
+        if(pollRes == -1) {
+            log(LEVEL_ERROR, "Error while polling");
+            return 0;
+        }
+        if(pollRes == 0) {
+            return 0;
+        }
+
         //read 3 only, then read skip
         memset(receiveBuffer, 0, RECV_BUFSIZE);
-        int bytesReceived = read(fileno(stdin), receiveBuffer, 3);
+        int bytesReceived = read(stdin_fd, receiveBuffer, 3);
 
         if(! bytesReceived) {
             return 0;
@@ -137,8 +159,10 @@ int readCSI() {
         unsigned short len = ntohs(*((unsigned short*)receiveBuffer));
         unsigned char code = *(receiveBuffer + 2);
 
+        printf("len: %d, code: %2x\n", len, code);
+
         while(bytesReceived < (len + 2)) {
-            bytesReceived += read(fileno(stdin), receiveBuffer + bytesReceived, (len + 2) - bytesReceived);
+            bytesReceived += read(stdin_fd, receiveBuffer + bytesReceived, (len + 2) - bytesReceived);
         }
 
         if(code == 0xBB) {
