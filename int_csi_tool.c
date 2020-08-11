@@ -30,8 +30,8 @@ void int_read_bfee(unsigned char* data, int_csi_notification* notification) {
 
     unsigned char* payload = (unsigned char*)(data + 20);
 
-    notification->csi_matrix = (INT_COMPLEX*) malloc(notification->Ntx * notification->Nrx * 30 * sizeof(INT_COMPLEX));
-    INT_COMPLEX *ptr = notification->csi_matrix;
+    INT_COMPLEX *tmp_csi_matrix = (INT_COMPLEX*) malloc(notification->Ntx * notification->Nrx * 30 * sizeof(INT_COMPLEX));
+	INT_COMPLEX *ptr = tmp_csi_matrix;
 
 
     int index = 0, remainder;
@@ -50,6 +50,28 @@ void int_read_bfee(unsigned char* data, int_csi_notification* notification) {
 
             ptr++;
 			index += 16;
+		}
+	}
+
+	// csi in mat[carrier][rx][tx] format
+	// reverse index order and shift permutation
+	notification->csi_matrix = (INT_COMPLEX*) malloc(notification->Ntx * notification->Nrx * 30 * sizeof(INT_COMPLEX));
+	for(int c = 0;c < 30;c++) {
+		for(int rx = 0;rx < notification->Nrx;rx++) {
+			  for(int tx = 0;tx < notification->Ntx;tx++) {
+				int targetRxAntenna = notification->perm[rx];
+
+				int sourceIndex = 
+					  (c * notification->Ntx * notification->Nrx)
+					+ (rx * notification->Ntx)
+					+ (tx);
+				int targetIndex =
+					  (targetRxAntenna * notification->Ntx * 30)
+					+ (tx * 30)
+					+ (c);
+
+				notification->csi_matrix[targetIndex] = tmp_csi_matrix[sourceIndex];
+			}
 		}
 	}
 
@@ -73,8 +95,10 @@ void int_read_bfee(unsigned char* data, int_csi_notification* notification) {
 	for(int i = 0;i < 30;i++) {
 		printf("R%.0f,I%.0f  ", notification->csi_matrix[i].real, notification->csi_matrix[i].imag);
 	}
-
+	
 	printf(" ...\n");
+
+	free(tmp_csi_matrix);
 }
 
 void int_free_notification(int_csi_notification* notification) {

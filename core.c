@@ -102,6 +102,8 @@ int int_packageCSIInfoMessage(char* buffer, int_csi_notification* notification) 
     putShort(buffer, &index, notification->len);
     putShort(buffer, &index, notification->fake_rate_n_flags);
     
+
+    // format: [tx][rx][carrier]   !!!!!   (permutation of rx ant <-> rf chains is already applied)
     int csi_mat_entries = notification->Ntx * notification->Nrx * 30;
     for(int i = 0;i < csi_mat_entries;i++) {
         putDouble(buffer, &index, notification->csi_matrix[i].real);
