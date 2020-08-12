@@ -44,14 +44,24 @@ void int_read_bfee(unsigned char* data, int_csi_notification* notification) {
 			tmp = (payload[index / 8] >> remainder) |
 				(payload[index/8+1] << (8-remainder));
 			ptr->real = (double) tmp;
+			
 			tmp = (payload[index / 8+1] >> remainder) |
 				(payload[index/8+2] << (8-remainder));
 			ptr->imag = (double) tmp;
+
+			// printf("Read: R%.0f,I%.0f\n", ptr->real, ptr->imag);
 
             ptr++;
 			index += 16;
 		}
 	}
+
+	/* Compute the permutation array (mapping from rx chain to antenna) */
+	notification->perm[0] = ((notification->antenna_sel) & 0x3);
+	notification->perm[1] = ((notification->antenna_sel >> 2) & 0x3);
+	notification->perm[2] = ((notification->antenna_sel >> 4) & 0x3);
+
+	// printf("\nArray length: %d\n", notification->Ntx * notification->Nrx * 30);
 
 	// csi in mat[carrier][rx][tx] format
 	// reverse index order and shift permutation
@@ -70,15 +80,12 @@ void int_read_bfee(unsigned char* data, int_csi_notification* notification) {
 					+ (tx * 30)
 					+ (c);
 
+				// printf("Copying c: %d, rx: %d, tx: %d,   targetRxAntenna: %d:   %d -> %d\n", c, rx, tx, targetRxAntenna, sourceIndex, targetIndex);
+
 				notification->csi_matrix[targetIndex] = tmp_csi_matrix[sourceIndex];
 			}
 		}
 	}
-
-    /* Compute the permutation array (mapping from rx chain to antenna) */
-	notification->perm[0] = ((notification->antenna_sel) & 0x3);
-	notification->perm[1] = ((notification->antenna_sel >> 2) & 0x3);
-	notification->perm[2] = ((notification->antenna_sel >> 4) & 0x3);
 
 	printf("bfee_count: %d, Nrx: %d, Ntx: %d, RSSI(a,b,c): %d,%d,%d, noise: %d, antenna_selection [%d %d %d]\n",
 		notification->bfee_count,
@@ -91,10 +98,10 @@ void int_read_bfee(unsigned char* data, int_csi_notification* notification) {
 	);
 
 	//TODO print csi matrix
-	printf("CSI (rx_chain=0, tx=0;rx=0):  ");
-	for(int i = 0;i < 30;i++) {
-		printf("R%.0f,I%.0f  ", notification->csi_matrix[i].real, notification->csi_matrix[i].imag);
-	}
+	// printf("CSI (rx_chain=*, tx=*;rx=*):  ");
+	// for(int i = 0;i < 30 * notification->Ntx * notification->Nrx;i++) {
+	// 	printf("R%.0f,I%.0f  ", notification->csi_matrix[i].real, notification->csi_matrix[i].imag);
+	// }
 	
 	printf(" ...\n");
 

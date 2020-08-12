@@ -149,7 +149,7 @@ int readCSI() {
         //read 3 only, then read skip
         memset(receiveBuffer, 0, RECV_BUFSIZE);
         int bytesReceived = read(stdin_fd, receiveBuffer, 3);
-
+        
         if(! bytesReceived) {
             return 0;
         }
