@@ -32,6 +32,9 @@ int main(int argc, char** argv) {
                 return 2;
             }
         }
+
+        // FLUSH!
+        fflush(stdout);
     }
 
     return 0;
