@@ -120,6 +120,7 @@ int int_packageCSIInfoMessage(char* buffer, int_csi_notification* notification) 
  * @param csi_matrix the csi matrix from the kernel
  */
 void ath_onCSI(unsigned char *data_buf, ath_csi_struct* csi_status, ATH_COMPLEX csi_matrix[3][3][114]) {
+    printf("Broadcasting to subscribers\n");
     for(int i = 0;i < subscriptionsLength;i++) {
         struct subscription* sub = subscriptions[i];
         if(matchesFilter(csi_status, &(sub->options.filter_options))) {

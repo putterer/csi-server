@@ -68,6 +68,7 @@ void sendData(struct sockaddr_in* dest, socklen_t addrLen, char* buf, int len) {
         log(LEVEL_ERROR, "Could not send to %s:%d", inet_ntoa(dest->sin_addr), ntohs(dest->sin_port));
         perror("");
     }
+    log(LEVEL_TRACE, "Sent info to %s:%d", inet_ntoa(dest->sin_addr), ntohs(dest->sin_port));
 }
 
 /**

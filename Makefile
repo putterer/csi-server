@@ -2,7 +2,8 @@ CC = mips-openwrt-linux-gcc
 CC86 = gcc
 CFLAGS = -Wall -fno-builtin-log
 
-OBJ = csi_tool.o main.o csi_service.o logger.o server.o core.o util.o int_csi_tool.o
+#OBJ = csi_tool.o main.o csi_service.o logger.o server.o core.o util.o int_csi_tool.o
+OBJ = ath_csi_tool.o int_csi_tool.o main.o csi_service.o logger.o server.o core.o util.o
 
 all: $(OBJ)
 	$(CC) $(CFLAGS) -o prog $(OBJ)
