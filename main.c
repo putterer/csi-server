@@ -8,6 +8,7 @@
 #include "csi_service.h"
 #include "server.h"
 #include "csi_types.h"
+#include "core.h"
 
 int exitRequested;
 
@@ -18,6 +19,12 @@ void sigHandler(int sig) {
 }
 
 int main(int argc, char* argv[]) {
+    if(argc >= 2) {
+        if(strcmp(argv[1], "--stdout") == 0) {
+            setAtherosStdoutDumpEnabled(true);
+        }
+    }
+
     exitRequested = 0;
     signal(SIGINT, sigHandler);
     

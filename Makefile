@@ -3,7 +3,7 @@ CC86 = gcc
 CFLAGS = -Wall -fno-builtin-log
 
 #OBJ = csi_tool.o main.o csi_service.o logger.o server.o core.o util.o int_csi_tool.o
-OBJ = ath_csi_tool.o int_csi_tool.o main.o csi_service.o logger.o server.o core.o util.o
+OBJ = ath_csi_tool.o int_csi_tool.o main.o csi_service.o logger.o server.o core.o util.o base64.o
 
 all: $(OBJ)
 	$(CC) $(CFLAGS) -o prog $(OBJ)
@@ -11,8 +11,8 @@ all: $(OBJ)
 %.o: %.c
 	$(CC) $(CFLAGS) -c $<
 
-x86: ath_csi_tool.c ath_csi_tool.h int_csi_tool.c int_csi_tool.h main.c csi_service.c csi_service.h logger.c logger.h server.c server.h core.c core.h util.c util.h
-	$(CC86) $(CFLAGS) -o progx86 ath_csi_tool.c ath_csi_tool.h int_csi_tool.c int_csi_tool.h main.c csi_service.c csi_service.h logger.c logger.h server.c server.h core.c core.h util.c util.h -std=c99
+x86: ath_csi_tool.c ath_csi_tool.h int_csi_tool.c int_csi_tool.h main.c csi_service.c csi_service.h logger.c logger.h server.c server.h core.c core.h util.c util.h base64.c base64.h
+	$(CC86) $(CFLAGS) -o progx86 ath_csi_tool.c ath_csi_tool.h int_csi_tool.c int_csi_tool.h main.c csi_service.c csi_service.h logger.c logger.h server.c server.h core.c core.h util.c util.h base64.c base64.h -std=c99
 
 clean:
 	rm -f *.o prog progx86

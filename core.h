@@ -39,5 +39,6 @@ void subscribe(char* buf, int len, struct sockaddr_in* clientAddress, socklen_t 
 void unsubscribe(char* buf, int len, struct sockaddr_in* clientAddress, socklen_t addressLength);
 int matchesFilter(ath_csi_struct* csi_status, struct filter_options* options);
 
+void setAtherosStdoutDumpEnabled(bool enabled);
 
 #endif

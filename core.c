@@ -6,6 +6,8 @@
 #include <netinet/in.h>
 #include <stdio.h>
 
+#include "base64.h"
+
 #include "logger.h"
 #include "core.h"
 #include "server.h"
@@ -22,6 +24,8 @@ char buffer[20000];
 
 // ID of the message, incremented with each received CSI info and included in each notification
 int messageId;
+
+bool atherosStdoutDumpEnabled = false;
 
 /**
  * Packages csi matrix and status into a buffer to be sent to a subscriber
@@ -66,6 +70,41 @@ int ath_packageCSIInfoMessage(char* buffer, ath_csi_struct* csi_status, ATH_COMP
     }
 
     return index;
+}
+
+void ath_dumpCSIInfoMessageToStdout(char* buffer, ath_csi_struct* csi_status, ATH_COMPLEX csi_matrix[3][3][114]) {
+    printf("<athCSI>");
+    // printf("<msgId>%d</msgId>", messageId);
+    // printf("<tstamp>%d</tstamp>", csi_status->tstamp);
+    // printf("<channel>%d</channel>", csi_status->channel);
+    // printf("<chanBW>%d</chanBW>", csi_status->chanBW);
+    // printf("<rate>%d</rate>", csi_status->rate);
+    // printf("<nr>%d</nr>", csi_status->nr);
+    // printf("<nc>%d</nc>", csi_status->nc);
+    // printf("<num_tones>%d</num_tones>", csi_status->num_tones);
+    // printf("<noise>%d</noise>", csi_status->noise);
+    // printf("<phyerr>%d</phyerr>", csi_status->phyerr);
+    // printf("<rssi>%d</rssi>", csi_status->rssi);
+    // printf("<rssi_0>%d</rssi_0>", csi_status->rssi_0);
+    // printf("<rssi_1>%d</rssi_1>", csi_status->rssi_1);
+    // printf("<rssi_2>%d</rssi_2>", csi_status->rssi_2);
+    // printf("<payload_len>%d</payload_len>", csi_status->payload_len);
+    // printf("<csi_len>%d</csi_len>", csi_status->csi_len);
+    // printf("<buf_len>%d</buf_len>", csi_status->buf_len);
+    
+    int len = ath_packageCSIInfoMessage(buffer, csi_status, csi_matrix);
+    // for(int i = 0;i < len;i++) {
+    //     // printf("%x", buffer[i]);
+
+    // }
+
+    size_t encodedLength = 0;
+    char* base64EncodedBuffer = base64_encode((unsigned char*)buffer, len, &encodedLength); // null terminated, malloc'd buffer
+    printf("%s", base64EncodedBuffer);
+    free(base64EncodedBuffer);
+
+    printf("</athCSI>\n");
+    fflush(stdout);
 }
 
 /**
@@ -121,6 +160,11 @@ int int_packageCSIInfoMessage(char* buffer, int_csi_notification* notification) 
  */
 void ath_onCSI(unsigned char *data_buf, ath_csi_struct* csi_status, ATH_COMPLEX csi_matrix[3][3][114]) {
     printf("Broadcasting to subscribers\n");
+
+    if(atherosStdoutDumpEnabled) {
+        ath_dumpCSIInfoMessageToStdout(buffer, csi_status, csi_matrix);
+    }
+
     for(int i = 0;i < subscriptionsLength;i++) {
         struct subscription* sub = subscriptions[i];
         if(matchesFilter(csi_status, &(sub->options.filter_options))) {
@@ -230,4 +274,11 @@ int matchesFilter(ath_csi_struct* csi_status, struct filter_options* options) {
     //built this way to accomodate more filters
 
     return 1;
+}
+
+void setAtherosStdoutDumpEnabled(bool enabled) {
+    atherosStdoutDumpEnabled = enabled;
+    if(atherosStdoutDumpEnabled) {
+        log(LEVEL_INFO, "Dumping (atheros) csi data to stdout ");
+    }
 }
