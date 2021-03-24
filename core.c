@@ -58,15 +58,16 @@ int ath_packageCSIInfoMessage(char* buffer, ath_csi_struct* csi_status, ATH_COMP
     if(csi_status->csi_len > 0) {
         for(int i1 = 0;i1 < 3;i1++) {
 			for(int i2 = 0;i2 < 3;i2++) {
-				for(int i3 = 0;i3 < 114;i3++) {
+				// for(int i3 = 0;i3 < 114;i3++) {
+				for(int i3 = 0;i3 < csi_status->num_tones;i3++) {
 					putInt(buffer, &index, csi_matrix[i1][i2][i3].real);
                     putInt(buffer, &index, csi_matrix[i1][i2][i3].imag);
 				}
 			}
 		}
     } else {
-        memset((buffer + index), 0, sizeof(ATH_COMPLEX) * 3 * 3 * 114);
-        index += sizeof(ATH_COMPLEX) * 3 * 3 * 114;
+        memset((buffer + index), 0, sizeof(ATH_COMPLEX) * 3 * 3 * csi_status->num_tones);
+        index += sizeof(ATH_COMPLEX) * 3 * 3 * csi_status->num_tones;
     }
 
     return index;
@@ -74,23 +75,6 @@ int ath_packageCSIInfoMessage(char* buffer, ath_csi_struct* csi_status, ATH_COMP
 
 void ath_dumpCSIInfoMessageToStdout(char* buffer, ath_csi_struct* csi_status, ATH_COMPLEX csi_matrix[3][3][114]) {
     printf("<athCSI>");
-    // printf("<msgId>%d</msgId>", messageId);
-    // printf("<tstamp>%d</tstamp>", csi_status->tstamp);
-    // printf("<channel>%d</channel>", csi_status->channel);
-    // printf("<chanBW>%d</chanBW>", csi_status->chanBW);
-    // printf("<rate>%d</rate>", csi_status->rate);
-    // printf("<nr>%d</nr>", csi_status->nr);
-    // printf("<nc>%d</nc>", csi_status->nc);
-    // printf("<num_tones>%d</num_tones>", csi_status->num_tones);
-    // printf("<noise>%d</noise>", csi_status->noise);
-    // printf("<phyerr>%d</phyerr>", csi_status->phyerr);
-    // printf("<rssi>%d</rssi>", csi_status->rssi);
-    // printf("<rssi_0>%d</rssi_0>", csi_status->rssi_0);
-    // printf("<rssi_1>%d</rssi_1>", csi_status->rssi_1);
-    // printf("<rssi_2>%d</rssi_2>", csi_status->rssi_2);
-    // printf("<payload_len>%d</payload_len>", csi_status->payload_len);
-    // printf("<csi_len>%d</csi_len>", csi_status->csi_len);
-    // printf("<buf_len>%d</buf_len>", csi_status->buf_len);
     
     int len = ath_packageCSIInfoMessage(buffer, csi_status, csi_matrix);
     // for(int i = 0;i < len;i++) {
