@@ -1,9 +1,11 @@
-# OpenWRT CSI-Server
+# CSI-Server
 A server for shipping channel state information obtained using the Atheros CSI Tool via UDP in real time.
 
 The CSI Server was written for usage in combination with an OpenWRT based embedded
 device but should be capable of being executed on a x86 based system as well. It is based
 upon the code of the [Atheros CSI tool’s](https://wands.sg/research/wifi/AtherosCSI/) recvCSI user space app.
+
+It also supports obtaining CSI using the Intel IWL5300 using the [Linux CSI tool](https://dhalperi.github.io/linux-80211n-csitool/). The tool is not integrated with this application, you can just pipe the output of the Linux CSI tool's `log_to_file` executable into the `stdin` of this application which will cause it to treat the received CSI data the same way it would using the Atheros CSI tool.
 
 ## Building
 The project provides a Makefile that by default cross compiles the program for run-
@@ -24,5 +26,5 @@ filter that is supported is the payload length of the received packet for which 
 calculated. Set to 0 to ignore.
 
 The CSI Server reads information about received CSI values from the `/dev/CSI_dev`
-kernel device of the CSI tool. It then packages this information and forwards it to all
+kernel device of the Atheros CSI tool or from `stdin` for the Intel CSI tool. It then packages this information and forwards it to all
 subscribed devices with applicable filter options using UDP.
