@@ -7,6 +7,9 @@ upon the code of the [Atheros CSI tool’s](https://wands.sg/research/wifi/Ather
 
 It also supports obtaining CSI using the Intel IWL5300 using the [Linux CSI tool](https://dhalperi.github.io/linux-80211n-csitool/). The tool is not integrated with this application, you can just pipe the output of the Linux CSI tool's `log_to_file` executable into the `stdin` of this application which will cause it to treat the received CSI data the same way it would using the Atheros CSI tool.
 
+## Prebuilt binary
+A prebuilt binary for the MIPS architecture can be found at [https://github.com/putterer/csi-auxillary/tree/main/router](https://github.com/putterer/csi-auxillary/tree/main/router).
+
 ## Building
 The project provides a Makefile that by default cross compiles the program for run-
 ning one OpenWRT, which can be used after the folder containing the `mips-openwrt--
